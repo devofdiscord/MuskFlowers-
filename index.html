@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuskFlowers</title>
+<link rel="stylesheet" href="style.css">
+<script src="firebase-config.js"></script>
+</head>
+<body>
+<script>
+// التأكد من تسجيل الدخول
+const user = JSON.parse(localStorage.getItem('user'));
+if(!user) window.location.href = 'login.html';
+</script>
+
+<header>MuskFlowers</header>
+<nav>
+<a href="#products"><i class="fas fa-gift"></i> المنتجات</a>
+<a href="https://wa.me/+9647866041932" target="_blank"><i class="fab fa-whatsapp"></i> واتساب</a>
+<a href="https://www.instagram.com/musk_for_flowers" target="_blank"><i class="fab fa-instagram"></i> إنستغرام</a>
+<div class="favorites-icon" id="showFavorites"><i class="fas fa-heart"></i>
+  <span class="favorites-count" id="favoritesCount">0</span>
+</div>
+</nav>
+
+<div class="container" id="products"></div>
+
+<div class="favorites-popup" id="favoritesPopup">
+<h3>المفضلات 🌹</h3>
+<div id="favoritesList"></div>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<footer>
+<p>توصيل داخل بغداد فقط</p>
+<p>الدفع كاش أو <img src="https://upload.wikimedia.org/wikipedia/commons/2/2e/Zain_Logo.png" alt="زين كاش" style="height:20px;vertical-align:middle;"></p>
+<p>© 2025 MuskFlowers</p>
+</footer>
+
+<script>
+const whatsappNumber='+9647866041932';
+
+const productsData=[
+  {name:'روز', img:'https://i.imgur.com/yIpsrlf.jpeg'},
+  {name:'بيبي روز و كريز', img:'https://i.imgur.com/J6Q2Khh.jpeg'},
+  {name:'باقات الخطوبه', img:'https://i.imgur.com/cD4tbfR.jpeg'},
+  {name:'باقات الفلوس', img:'https://i.imgur.com/wNd3xmc.jpeg'},
+  {name:'بوكسات', img:'https://i.imgur.com/Abbrb5Z.jpeg'},
+  {name:'باقات كريسمس', img:'https://i.imgur.com/04PRp1B.jpeg'},
+  {name:'التخرج', img:'https://i.imgur.com/mWogvK5.jpeg'}
+];
+
+let favorites = [];
+
+const productsContainer=document.getElementById('products');
+const favoritesCount=document.getElementById('favoritesCount');
+const favoritesPopup=document.getElementById('favoritesPopup');
+const favoritesList=document.getElementById('favoritesList');
+const notification=document.getElementById('notification');
+
+function showNotification(msg){
+  notification.textContent=msg;
+  notification.style.display='block';
+  setTimeout(()=>{notification.style.display='none';},2500);
+}
+
+function updateFavoritesCount(){
+  favoritesCount.textContent=favorites.length;
+}
+
+function renderFavorites(){
+  favoritesList.innerHTML='';
+  favorites.forEach((prod,i)=>{
+    const item=document.createElement('div');
+    item.className='fav-item';
+    item.innerHTML=`
+      <img src="${prod.img}" alt="${prod.name}">
+      <p>${prod.name}</p>
+      <button onclick="removeFavorite(${i})">حذف</button>`;
+    favoritesList.appendChild(item);
+  });
+}
+
+function removeFavorite(index){
+  favorites.splice(index,1);
+  renderFavorites();
+  updateFavoritesCount();
+  renderProducts();
+  showNotification('تم حذف المنتج من المفضلات ❌');
+}
+
+function toggleFavorite(prod){
+  const exists=favorites.find(p=>p.name===prod.name);
+  if(exists){
+    favorites=favorites.filter(p=>p.name!==prod.name);
+    showNotification('تم إزالة المنتج من المفضلات ❌');
+  } else {
+    favorites.push(prod);
+    showNotification('تمت إضافة المنتج للمفضلات 🌹');
+  }
+  renderFavorites();
+  updateFavoritesCount();
+  renderProducts();
+}
+
+function renderProducts(){
+  productsContainer.innerHTML='';
+  productsData.forEach(prod=>{
+    const card=document.createElement('div');
+    card.className='product-card';
+    const isFav=favorites.find(p=>p.name===prod.name);
+    card.innerHTML=`
+      <i class="fas fa-heart favorite-btn ${isFav?'active':''}"></i>
+      <img src="${prod.img}" alt="${prod.name}">
+      <div class="product-info">
+        <h3>${prod.name}</h3>
+        <p class="small-text">التغليف حسب الاختيار</p>
+        <p>تواصل عبر الواتساب</p>
+        <button class="btn-order">اطلب الآن</button>
+      </div>`;
+    card.querySelector('.btn-order').addEventListener('click',()=>orderNow(prod.name));
+    card.querySelector('.favorite-btn').addEventListener('click',()=>toggleFavorite(prod));
+    productsContainer.appendChild(card);
+  });
+}
+
+function orderNow(name){
+  const msg=`مرحباً، أريد طلب *${name}*`;
+  showNotification(`فتح واتساب لطلب: ${name} 📲`);
+  window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+renderProducts();
+updateFavoritesCount();
+
+document.getElementById('showFavorites').addEventListener('click',()=>{
+  favoritesPopup.style.display=favoritesPopup.style.display==='block'?'none':'block';
+});
+</script>
+</body>
+</html>
